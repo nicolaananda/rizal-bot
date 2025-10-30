@@ -1,0 +1,16 @@
+[
+   {
+      "id": "120363253087590634@g.us",
+      "key": "gahah",
+      "response": "ajaja",
+      "isImage": false,
+      "image_url": "-"
+   },
+   {
+      "id": "6285783538143@s.whatsapp.net",
+      "key": "cara order",
+      "response": "🛍️ Halo *arap mium*, berikut adalah panduan lengkap cara memesan di bot kami:\n\n*LANGKAH 1: LIHAT PRODUK & KODE VARIAN*\n\n1️⃣ Ketik *listproduk* atau *stok* untuk melihat daftar produk utama yang diberi nomor.\n\n2️⃣ Setelah daftar muncul, balas dengan mengetik *nomor urut produk* yang Anda inginkan (Contoh: *1*).\n\n3️⃣ Bot akan menampilkan detail semua varian dari produk tersebut. Perhatikan *Code Variant* untuk setiap varian (Contoh: `netf1u`, `ytfh`), karena kode ini akan digunakan untuk memesan.\n\n-----------------------------------\n\n*LANGKAH 2: LAKUKAN PEMESANAN*\n\nAnda bisa memilih salah satu dari dua cara pembayaran:\n\n*A. BAYAR LANGSUNG (QRIS)*\nGunakan perintah ini untuk pembayaran langsung via QRIS.\n\n┌─「 Format Perintah 」\n│ ```buynow [Code Variant] [Jumlah]```\n└─\n*Contoh:* ```buynow netf1u 1```\n\nBot akan mengirimkan gambar QRIS ke chat pribadi Anda. Segera selesaikan pembayaran sesuai nominal yang tertera sebelum kedaluwarsa.\n\n*B. BAYAR DENGAN SALDO AKUN* (Lebih Cepat & Praktis)\nBeli langsung menggunakan saldo yang Anda miliki di bot.\n\n 1. Cek saldo Anda: *ceksaldo*\n 2. Jika kurang, isi saldo: *deposit [jumlah]* (Contoh: `deposit 10000`)\n 3. Lakukan pembelian:\n ┌─「 Format Perintah 」\n │ ```orders [Code Variant] [Jumlah]```\n └─\n *Contoh:* ```orders netf1u 1```\n\n-----------------------------------\n\n*STOK HABIS?*\n\nJika varian yang Anda inginkan habis, Anda bisa meminta notifikasi saat stok kembali tersedia.\n\n┌─「 Format Perintah 」\n│ ```restok [Code Variant]```\n└─\n*Contoh:* ```restok netf1u```\n\nTerima kasih & Selamat Berbelanja! 😊",
+      "isImage": false,
+      "image_url": "-"
+   }
+]

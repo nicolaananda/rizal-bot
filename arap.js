@@ -746,7 +746,9 @@ const checkPaymentStatus_Rap = async (botInstance, senderJd) => {
             await botInstance.sendMessage(senderJd, { text: successMsgUser });
 
             const det = buildDetailBlock(orderDetails.reservedStock);
-            // Kirim invoice gambar lebih dulu
+            await botInstance.sendMessage(senderJd, { text: det.text });
+
+            // Kirim invoice gambar
             try {
                 const invoiceBuffer = await generateInvoiceBuffer({
                     date: tanggal,
@@ -758,13 +760,21 @@ const checkPaymentStatus_Rap = async (botInstance, senderJd) => {
                     buyer: senderJd.split('@')[0],
                     sn: orderDetails.transactionId
                 });
-                await botInstance.sendMessage(senderJd, { image: invoiceBuffer, caption: 'INVOICE' });
+				// Gabungkan detail transaksi ke dalam caption agar gambar + teks dalam satu bubble
+				const hargaBarangCaption = orderDetails.hargaSetelahDiskon || orderDetails.hargaSatuanOriginal || orderDetails.totalBayar;
+				const invoiceCaption = `✅ 『 TRANSAKSI SUKSES 』\n\n` +
+					`────────  『 TRANSAKSI DETAIL 』  ────────\n` +
+					`🧾 Reff Id: ${orderDetails.transactionId}\n` +
+					`📦 Nama Barang: ${orderDetails.productName} ${orderDetails.variantName}\n` +
+					`💵 Harga Barang: Rp${toRupiah(hargaBarangCaption)}\n` +
+					`🔢 Jumlah Order: ${orderDetails.jumlah}\n` +
+					`💳 Total Bayar: Rp${toRupiah(orderDetails.totalBayar)}\n` +
+					`📅 Tanggal: ${tanggal}\n` +
+					`🕒 Jam: ${jam} WIB`;
+				await botInstance.sendMessage(senderJd, { image: invoiceBuffer, caption: invoiceCaption });
             } catch (e) {
                 console.error('Gagal membuat invoice:', e.message);
             }
-
-            // Lalu kirim teks detail transaksi
-            await botInstance.sendMessage(senderJd, { text: det.text });
 
             let accountsText = "";
             if (Array.isArray(orderDetails.reservedStock)) {
@@ -4009,7 +4019,18 @@ case 'order': {
                                     buyer: m.sender.split('@')[0],
                                     sn: paidOrder.orderId
                                 });
-                                await arap.sendMessage(m.sender, { image: invoiceBuffer, caption: 'INVOICE' }, { quoted: m });
+					// Satukan detail transaksi dalam caption agar menjadi satu bubble seperti contoh
+					const hargaBarangPaid = paidOrder.hargaSetelahDiskon || paidOrder.hargaSatuanOriginal || paidOrder.totalBayar;
+					const invoiceCaptionPaid = `✅ 『 TRANSAKSI SUKSES 』\n\n` +
+						`────────  『 TRANSAKSI DETAIL 』  ────────\n` +
+						`🧾 Reff Id: ${paidOrder.orderId}\n` +
+						`📦 Nama Barang: ${paidOrder.productName} ${paidOrder.variantName}\n` +
+						`💵 Harga Barang: Rp${toRupiah(hargaBarangPaid)}\n` +
+						`🔢 Jumlah Order: ${jumlah}\n` +
+						`💳 Total Bayar: Rp${toRupiah(paidOrder.totalBayar)}\n` +
+						`📅 Tanggal: ${tanggal}\n` +
+						`🕒 Jam: ${date.format("HH:mm:ss")} WIB`;
+					await arap.sendMessage(m.sender, { image: invoiceBuffer, caption: invoiceCaptionPaid }, { quoted: m });
                                 // Tambahkan notifikasi ke admin jika pembelian sukses
                                 await arap.sendMessage('6281227029620@s.whatsapp.net', {
                                     text: `🔔 *TRANSAKSI BERHASIL!*

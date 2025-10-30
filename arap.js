@@ -34,10 +34,10 @@ async function generateInvoiceBuffer(details) {
     const fontBig = fontMedium; // Bisa ganti ke FONT_SANS_64_WHITE jika mau status lebih besar
 
     // Set posisi field agar sesuai bg.png
-    // Header:
-    image.print(fontSmall, 105, 80, details.date || '-'); // DATE
-    image.print(fontSmall, 285, 80, details.invoiceId || '-'); // NO INVOICE
-    image.print(fontMedium, 433, 80, details.status || 'SUCCESS'); // STATUS (box sudah ada di bg)
+    // Header (geser sedikit ke bawah) dan hilangkan teks status agar tidak double di background
+    image.print(fontSmall, 105, 100, details.date || '-'); // DATE
+    image.print(fontSmall, 285, 100, details.invoiceId || '-'); // NO INVOICE
+    // Status tidak dicetak, karena sudah ada pada background
 
     // Body kolom kiri
     let yProduk = 175;
@@ -46,12 +46,12 @@ async function generateInvoiceBuffer(details) {
     image.print(fontSmall, 180, yProduk + 80, `Rp${details.harga || '-'}`); // HARGA
 
     // Buyer info
-    if(details.buyer){
-        image.print(fontSmall, 180, yProduk + 120, `No Buyer: ${details.buyer}`);
+    if(details.sn){
+        // Permintaan: taruh SN di area No Buyer
+        image.print(fontSmall, 180, yProduk + 120, `SN: ${details.sn}`);
     }
 
-    // SN block (pakai fontMedium dan lebih besar)
-    image.print(fontMedium, 120, 295, details.sn ? `SN -> ${details.sn}` : 'SN -> -');
+    // Hapus blok SN besar agar tidak dobel dengan SN di area No Buyer
 
     return await image.getBufferAsync(Jimp.MIME_PNG);
 }
@@ -742,11 +742,7 @@ const checkPaymentStatus_Rap = async (botInstance, senderJd) => {
             const tanggal = now.toLocaleDateString('id-ID', { day: '2-digit', month: 'long', year: 'numeric' });
             const jam = now.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false });
 
-            let successMsgUser = `╭───〔 *TRANSAKSI SUKSES* 🎉 〕\n\n• ID TRX: ${orderDetails.transactionId}\n\n╭──〔 *DETAIL PRODUCT* 📦〕 \n│ • Produk: ${orderDetails.productName} ${orderDetails.variantName}\n│ • Jumlah Beli: ${orderDetails.jumlah} \n│ • Total Bayar: Rp ${toRupiah(orderDetails.totalBayar)}\n│ • Tanggal: ${tanggal}\n│ • Jam: ${jam} WIB\n╰────────\n\n╭────〔 SNK PRODUCT 〕──\n\n${snkProduk}\n\n╰─────────\n\nDetail akun telah dikirim di pesan berikutnya.`;
-            await botInstance.sendMessage(senderJd, { text: successMsgUser });
-
-            const det = buildDetailBlock(orderDetails.reservedStock);
-            await botInstance.sendMessage(senderJd, { text: det.text });
+            // Tidak kirim bubble terpisah untuk success/detail/SNK — akan dimasukkan ke caption invoice
 
             // Kirim invoice gambar
             try {
@@ -757,7 +753,6 @@ const checkPaymentStatus_Rap = async (botInstance, senderJd) => {
                     product: orderDetails.productName,
                     variant: orderDetails.variantName,
                     harga: toRupiah(orderDetails.totalBayar),
-                    buyer: senderJd.split('@')[0],
                     sn: orderDetails.transactionId
                 });
 				// Gabungkan detail transaksi ke dalam caption agar gambar + teks dalam satu bubble
@@ -770,7 +765,9 @@ const checkPaymentStatus_Rap = async (botInstance, senderJd) => {
 					`🔢 Jumlah Order: ${orderDetails.jumlah}\n` +
 					`💳 Total Bayar: Rp${toRupiah(orderDetails.totalBayar)}\n` +
 					`📅 Tanggal: ${tanggal}\n` +
-					`🕒 Jam: ${jam} WIB`;
+					`🕒 Jam: ${jam} WIB\n\n` +
+					`────────  『 SNK PRODUCT 』  ────────\n` +
+					`${snkProduk}`;
 				await botInstance.sendMessage(senderJd, { image: invoiceBuffer, caption: invoiceCaption });
             } catch (e) {
                 console.error('Gagal membuat invoice:', e.message);
@@ -3976,24 +3973,8 @@ case 'order': {
                             akunTxt = akunTxt.trim();
 
 
-                            // -- PESAN DETAIL PRODUK --
-                            let captionDetail = `╭───〔 *TRANSAKSI SUKSES* 🎉 〕\n\n` +
-                                            `• ID TRX: ${paidOrder.orderId}\n\n` +
-                                            `╭──〔 *DETAIL PRODUCT* 📦〕 \n` +
-                                            `│ • Produk: ${paidOrder.productName} (${paidOrder.variantName})\n` +
-                                            `│ • Jumlah Beli: ${jumlah}\n` +
-                                            `│ • Total Bayar: Rp ${toRupiah(paidOrder.totalBayar)}\n` +
-                                            `│ • Tanggal: ${date.format("DD MMMM YYYY")}\n` +
-                                            `│ • Jam: ${date.format("HH:mm:ss")} WIB\n` +
-                                            `╰────────\n\n` +
-                                            `╭────〔 *SNK PRODUCT* 〕──\n\n` +
-                                            `• ${paidOrder.variantSnk || 'Tidak ada Syarat dan Ketentuan.'}\n\n` +
-                                            `╰─────────\n\n` +
-                                            `Detail akun telah dikirim di pesan berikutnya.`;
-                            
-                            await arap.sendMessage(m.sender, { text: captionDetail }, { quoted: m }); 
-                            
-                            await sleep(2000); 
+                            // Tidak kirim bubble terpisah untuk success/detail/SNK — akan dimasukkan ke caption invoice
+                            await sleep(500); 
                             
                             // -- PESAN DETAIL AKUN --
                             let captionAkun = `╭────〔 *DETAIL AKUN* 〕──\n\n` +
@@ -4016,20 +3997,21 @@ case 'order': {
                                     product: paidOrder.productName,
                                     variant: paidOrder.variantName,
                                     harga: toRupiah(paidOrder.totalBayar),
-                                    buyer: m.sender.split('@')[0],
                                     sn: paidOrder.orderId
                                 });
-					// Satukan detail transaksi dalam caption agar menjadi satu bubble seperti contoh
-					const hargaBarangPaid = paidOrder.hargaSetelahDiskon || paidOrder.hargaSatuanOriginal || paidOrder.totalBayar;
-					const invoiceCaptionPaid = `✅ 『 TRANSAKSI SUKSES 』\n\n` +
-						`────────  『 TRANSAKSI DETAIL 』  ────────\n` +
-						`🧾 Reff Id: ${paidOrder.orderId}\n` +
-						`📦 Nama Barang: ${paidOrder.productName} ${paidOrder.variantName}\n` +
-						`💵 Harga Barang: Rp${toRupiah(hargaBarangPaid)}\n` +
-						`🔢 Jumlah Order: ${jumlah}\n` +
-						`💳 Total Bayar: Rp${toRupiah(paidOrder.totalBayar)}\n` +
-						`📅 Tanggal: ${tanggal}\n` +
-						`🕒 Jam: ${date.format("HH:mm:ss")} WIB`;
+                                // Satukan detail transaksi + SNK dalam caption agar menjadi satu bubble seperti contoh
+                                const hargaBarangPaid = paidOrder.hargaSetelahDiskon || paidOrder.hargaSatuanOriginal || paidOrder.totalBayar;
+                                const invoiceCaptionPaid = `✅ 『 TRANSAKSI SUKSES 』\n\n` +
+                                    `────────  『 TRANSAKSI DETAIL 』  ────────\n` +
+                                    `🧾 Reff Id: ${paidOrder.orderId}\n` +
+                                    `📦 Nama Barang: ${paidOrder.productName} ${paidOrder.variantName}\n` +
+                                    `💵 Harga Barang: Rp${toRupiah(hargaBarangPaid)}\n` +
+                                    `🔢 Jumlah Order: ${jumlah}\n` +
+                                    `💳 Total Bayar: Rp${toRupiah(paidOrder.totalBayar)}\n` +
+                                    `📅 Tanggal: ${tanggal}\n` +
+                                    `🕒 Jam: ${date.format("HH:mm:ss")} WIB\n\n` +
+                                    `────────  『 SNK PRODUCT 』  ────────\n` +
+                                    `${paidOrder.variantSnk || 'Tidak ada Syarat dan Ketentuan.'}`;
 					await arap.sendMessage(m.sender, { image: invoiceBuffer, caption: invoiceCaptionPaid }, { quoted: m });
                                 // Tambahkan notifikasi ke admin jika pembelian sukses
                                 await arap.sendMessage('6281227029620@s.whatsapp.net', {

@@ -34,9 +34,9 @@ async function generateInvoiceBuffer(details) {
     const fontBig = fontMedium; // Bisa ganti ke FONT_SANS_64_WHITE jika mau status lebih besar
 
     // Set posisi field agar sesuai bg.png
-    // Header (geser sedikit ke bawah) dan hilangkan teks status agar tidak double di background
-    image.print(fontSmall, 105, 120, details.date || '-'); // DATE (kurang kebawah)
-    image.print(fontSmall, 245, 135, details.invoiceId || '-'); // NO INVOICE // geser kebawah dan kiri
+    // Header refined positions
+    image.print(fontSmall, 95, 125, details.date || '-'); // DATE: sedikit ke kiri dan turun dikit
+    image.print(fontSmall, 245, 125, details.invoiceId || '-'); // NO INVOICE: sejajar vertikal dengan DATE
     // Status tidak dicetak, karena sudah ada pada background
 
     // Body kolom kiri
@@ -47,8 +47,8 @@ async function generateInvoiceBuffer(details) {
 
     // Buyer info
     if(details.sn){
-        // Permintaan: taruh SN di area No Buyer
-        image.print(fontSmall, 180, yProduk + 135, `${details.sn}`);
+        // SN di area No Buyer, naikkan sedikit
+        image.print(fontSmall, 180, yProduk + 125, `${details.sn}`);
     }
 
     // Hapus blok SN besar agar tidak dobel dengan SN di area No Buyer

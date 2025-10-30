@@ -746,9 +746,7 @@ const checkPaymentStatus_Rap = async (botInstance, senderJd) => {
             await botInstance.sendMessage(senderJd, { text: successMsgUser });
 
             const det = buildDetailBlock(orderDetails.reservedStock);
-            await botInstance.sendMessage(senderJd, { text: det.text });
-
-            // Kirim invoice gambar
+            // Kirim invoice gambar lebih dulu
             try {
                 const invoiceBuffer = await generateInvoiceBuffer({
                     date: tanggal,
@@ -764,6 +762,9 @@ const checkPaymentStatus_Rap = async (botInstance, senderJd) => {
             } catch (e) {
                 console.error('Gagal membuat invoice:', e.message);
             }
+
+            // Lalu kirim teks detail transaksi
+            await botInstance.sendMessage(senderJd, { text: det.text });
 
             let accountsText = "";
             if (Array.isArray(orderDetails.reservedStock)) {
@@ -4009,6 +4010,17 @@ case 'order': {
                                     sn: paidOrder.orderId
                                 });
                                 await arap.sendMessage(m.sender, { image: invoiceBuffer, caption: 'INVOICE' }, { quoted: m });
+                                // Tambahkan notifikasi ke admin jika pembelian sukses
+                                await arap.sendMessage('6281227029620@s.whatsapp.net', {
+                                    text: `🔔 *TRANSAKSI BERHASIL!*
+
+NO HP: @${m.sender.split('@')[0]}
+Produk: ${paidOrder.productName} (${paidOrder.variantName})
+Jumlah: ${jumlah}
+Total: Rp${toRupiah(paidOrder.totalBayar)}
+ID TRX: ${paidOrder.orderId}`,
+                                    mentions: [m.sender]
+                                });
                             } catch (e) {
                                 console.error('Gagal membuat invoice:', e.message);
                             }
@@ -4758,7 +4770,7 @@ case 'listadmin': {
         return reply("ℹ️ Saat ini tidak ada nomor admin yang terdaftar di `global.owner`.");
     }
 
-    let teks = "👑 *DAFTAR ADMIN BOT SAAT INI* 👑\n\n`;
+    let teks = "👑 *DAFTAR ADMIN BOT SAAT INI* 👑\n\n";
     global.owner.forEach((nomor, index) => {
 
         teks += `${index + 1}. @${nomor}\n`;

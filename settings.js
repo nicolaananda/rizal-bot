@@ -1,8 +1,9 @@
 const fs = require('fs')
+require('dotenv').config()
 
-global.mongodblink="mongodb+srv://bisnisrizal17:yzcreative123@cluster0.otz40gs.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0"; //isi link db mongodb nya
+global.mongodblink = process.env.MONGODB_URI || "mongodb+srv://bisnisrizal17:yzcreative123@cluster0.otz40gs.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0"; // ambil dari env, fallback ke default
 global.angka= "2151125";
-global.proxy="http://ivalproxy-zone-custom-region-ID-asn-AS24203:proxyival2aug@asg.360s5.com:3600"; //link proxy http residental
+global.proxy = process.env.PROXY_URL || "http://ivalproxy-zone-custom-region-ID-asn-AS24203:proxyival2aug@asg.360s5.com:3600"; //link proxy http residental
 
 global.pairing = true // ganti false kalo mau pake qr dan ganti true kalo mau pake pairing atau bisa diubah di file main.js
 global.namabot = "YZ-Botz"
@@ -14,10 +15,10 @@ global.owner = ["6281227029620", "6282124359181","6285143569870","6281389592985"
 global.sessionName = 'session'
 
 // ORKUT SETTINGS
-global.password = '230722adjie'
-global.username = 'yzcreative'
-global.tokenorkut = '2151125:Arg6pwtWhXsnkBOM5Lqx2UlZT4id9ae8'
-global.apikey = 'yzcreative'
+global.password = process.env.ORKUT_PASSWORD || '230722adjie'
+global.username = process.env.ORKUT_USERNAME || 'yzcreative'
+global.tokenorkut = process.env.ORKUT_TOKEN || '2151125:Arg6pwtWhXsnkBOM5Lqx2UlZT4id9ae8'
+global.apikey = process.env.API_KEY || 'yzcreative'
 
 global.prefa = ['-_-']
 global.caption_pay = `Qris All Pay
